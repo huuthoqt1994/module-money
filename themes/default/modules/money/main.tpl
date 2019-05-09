@@ -1,31 +1,18 @@
 <!-- BEGIN: main -->
+<link rel="stylesheet" href="{NV_BASE_SITEURL}{NV_ASSETS_DIR}/js/select2/select2.min.css" />
+<link rel="stylesheet" href="{NV_BASE_SITEURL}{NV_ASSETS_DIR}/js/select2/select2-bootstrap.min.css" />
 <link type="text/css" href="{NV_BASE_SITEURL}{NV_ASSETS_DIR}/js/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
 <div class="well">
     <form action="{ACTION}" method="get">
         <input type="hidden" name="type" value="{SEARCH.type}" />
         <!-- BEGIN: no_rewrite -->
-        <input type="hidden" name="{NV_LANG_VARIABLE}" value="{NV_LANG_DATA}" />
-        <input type="hidden" name="{NV_NAME_VARIABLE}" value="{MODULE_NAME}" />
-        <input type="hidden" name="{NV_OP_VARIABLE}" value="{OP}" />
+        <input type="hidden" name="{NV_LANG_VARIABLE}" value="{NV_LANG_DATA}" /> <input type="hidden" name="{NV_NAME_VARIABLE}" value="{MODULE_NAME}" /> <input type="hidden" name="{NV_OP_VARIABLE}" value="{OP}" />
         <!-- END: no_rewrite -->
         <div class="row">
-            <div class="col-xs-24 col-md-4">
+            <div class="col-xs-12 col-md-5">
                 <div class="form-group">
                     <div class="input-group">
-                        <input class="form-control datepicker" value="{SEARCH.from}" type="text" name="from" placeholder="{LANG.date_from}" />
-                        <span class="input-group-btn">
-                            <button class="btn btn-default" type="button">
-                                <em class="fa fa-calendar fa-fix">&nbsp;</em>
-                            </button>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xs-24 col-md-4">
-                <div class="form-group">
-                    <div class="input-group">
-                        <input class="form-control datepicker" value="{SEARCH.to}" type="text" name="to" placeholder="{LANG.date_to}" />
-                        <span class="input-group-btn">
+                        <input class="form-control" value="{SEARCH.daterange}" type="text" name="daterange" autocomplete="off" placeholder="{LANG.choice_time}" /><span class="input-group-btn">
                             <button class="btn btn-default" type="button">
                                 <em class="fa fa-calendar fa-fix">&nbsp;</em>
                             </button>
@@ -57,9 +44,7 @@
         <table class="table table-striped table-bordered table-hover">
             <thead>
                 <tr>
-                    <th class="text-center" width="50">
-                        <input name="check_all[]" type="checkbox" value="yes" onclick="nv_checkAll(this.form, 'idcheck[]', 'check_all[]',this.checked);">
-                    </th>
+                    <th class="text-center" width="50"><input name="check_all[]" type="checkbox" value="yes" onclick="nv_checkAll(this.form, 'idcheck[]', 'check_all[]',this.checked);"></th>
                     <th width="150">{LANG.money_date}</th>
                     <th>{LANG.money_value}</th>
                     <th>{LANG.note}</th>
@@ -123,14 +108,57 @@
 </form>
 <script type="text/javascript" src="{NV_BASE_SITEURL}{NV_ASSETS_DIR}/js/jquery-ui/jquery-ui.min.js"></script>
 <script type="text/javascript" src="{NV_BASE_SITEURL}{NV_ASSETS_DIR}/js/language/jquery.ui.datepicker-{NV_LANG_INTERFACE}.js"></script>
-<script>
-    $(".datepicker").datepicker({
-        dateFormat : "dd/mm/yy",
-        changeMonth : !0,
-        changeYear : !0,
-        showOtherMonths : !0,
-        showOn : "focus",
-        yearRange : "-90:+0"
-    });
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<script type="text/javascript">
+$(function() {
+  $('input[name="daterange"]').daterangepicker({
+      autoUpdateInput: false,
+      showDropdowns: true,
+      opens: "right",
+      alwaysShowCalendars: true,
+      locale: {
+          cancelLabel: 'Clear',
+          format: 'DD/MM/YYYY',
+          separator: " - ",
+          showWeekNumbers: true,
+          applyLabel: "{LANG.applyLabel}",
+          cancelLabel: "{LANG.cancelLabel}",
+          fromLabel: "{LANG.fromLabel}",
+          toLabel: "{LANG.toLabel}",
+          customRangeLabel: "Custom",
+          daysOfWeek: [
+              "{LANG_GLOBAL.sun}",
+              "{LANG_GLOBAL.mon}",
+              "{LANG_GLOBAL.tue}",
+              "{LANG_GLOBAL.wed}",
+              "{LANG_GLOBAL.thu}",
+              "{LANG_GLOBAL.fri}",
+              "{LANG_GLOBAL.sat}"  
+              ],
+          monthNames: [
+              "{LANG_GLOBAL.january}",
+              "{LANG_GLOBAL.february}",
+              "{LANG_GLOBAL.march}",
+              "{LANG_GLOBAL.april}",
+              "{LANG_GLOBAL.may}",
+              "{LANG_GLOBAL.june}",
+              "{LANG_GLOBAL.july}",
+              "{LANG_GLOBAL.august}",
+              "{LANG_GLOBAL.september}",
+              "{LANG_GLOBAL.october}",
+              "{LANG_GLOBAL.december}"  
+              ]   
+      }
+  });
+ 
+  $('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) {
+      $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+  });
+  $('input[name="daterange"]').on('cancel.daterangepicker', function(ev, picker) {
+      $(this).val('');
+  });
+});
 </script>
 <!-- END: main -->

@@ -21,7 +21,7 @@ if ($nv_Request->isset_request('delete_id', 'get') and $nv_Request->isset_reques
 } elseif ($nv_Request->isset_request('delete_list', 'post')) {
     $listall = $nv_Request->get_title('listall', 'post', '');
     $array_id = explode(',', $listall);
-
+    
     if (!empty($array_id)) {
         foreach ($array_id as $id) {
             $db->query('DELETE FROM ' . NV_PREFIXLANG . '_' . $module_data . '_money  WHERE id = ' . $id);
@@ -36,21 +36,32 @@ if ($nv_Request->isset_request('delete_id', 'get') and $nv_Request->isset_reques
 $base_url = NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $op;
 $array_search = array(
     'type' => $nv_Request->get_int('type', 'get', 1),
-    'from' => $nv_Request->get_string('from', 'get', ''),
-    'to' => $nv_Request->get_string('to', 'get', '')
+    'daterange' => $nv_Request->get_string('daterange', 'get', '')
 );
 
 $where = ' AND type=' . $array_search['type'];
 $base_url .= '&type=' . $array_search['type'];
 
-if (preg_match('/^([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})$/', $array_search['from'], $m)) {
-    $base_url .= '&from=' . $array_search['from'];
-    $where .= ' AND date >= ' . mktime(0, 0, 0, $m[2], $m[1], $m[3]);
-}
-
-if (preg_match('/^([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})$/', $array_search['to'], $m)) {
-    $base_url .= '&to=' . $array_search['to'];
-    $where .= ' AND date <= ' . mktime(23, 59, 59, $m[2], $m[1], $m[3]);
+if (!empty($array_search['daterange'])) {
+    
+    $begin_time = substr($array_search['daterange'], 0, 10);
+    $end_time = substr($array_search['daterange'], -10);
+    
+    if (preg_match('/^([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})$/', $begin_time, $m)) {
+        
+        $begin_time = mktime(23, 59, 59, $m[2], $m[1], $m[3]);
+    } else {
+        $begin_time = 0;
+    }
+    if (preg_match('/^([0-9]{1,2})\/([0-9]{1,2})\/([0-9]{4})$/', $end_time, $m)) {
+        
+        $end_time = mktime(23, 59, 59, $m[2], $m[1], $m[3]);
+    } else {
+        $end_time = 0;
+    }
+    
+    $base_url .= '&amp;daterange= ' . $array_search['daterange'];
+    $where .= ' AND date >= ' . $begin_time . ' AND date <= ' . $end_time;
 }
 
 $per_page = 20;
@@ -59,7 +70,6 @@ $db->sqlreset()
     ->select('COUNT(*)')
     ->from(NV_PREFIXLANG . '_' . $module_data . '_money')
     ->where('1=1' . $where);
-
 $sth = $db->prepare($db->sql());
 
 $sth->execute();
@@ -79,6 +89,7 @@ $lang_module['total_type'] = $lang_module['total_type_' . ($array_search['type']
 
 $xtpl = new XTemplate($op . '.tpl', NV_ROOTDIR . '/themes/' . $module_info['template'] . '/modules/' . $module_file);
 $xtpl->assign('LANG', $lang_module);
+$xtpl->assign('LANG_GLOBAL', $lang_global);
 $xtpl->assign('MODULE_NAME', $module_name);
 $xtpl->assign('OP', $op);
 $xtpl->assign('SEARCH', $array_search);
@@ -101,28 +112,28 @@ while ($view = $sth->fetch()) {
     } else {
         $view['fullname'] = $array_user[$view['userid']];
     }
-
+    
     if (!empty($count_groupmanager)) {
         if (nv_check_action($view['addtime'])) {
             $view['link_edit'] = NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $module_info['alias']['content'] . '&amp;id=' . $view['id'] . '&amp;redirect=' . nv_redirect_encrypt($client_info['selfurl']);
             $view['link_delete'] = NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $op . '&amp;delete_id=' . $view['id'] . '&amp;delete_checkss=' . md5($view['id'] . NV_CACHE_PREFIX . $client_info['session_id']) . '&amp;redirect=' . nv_redirect_encrypt($client_info['selfurl']);
         }
     }
-
+    
     $thu = $db->query('SELECT SUM(money) FROM ' . NV_PREFIXLANG . '_' . $module_data . '_money WHERE type=1')->fetchColumn();
     $chi = $db->query('SELECT SUM(money) FROM ' . NV_PREFIXLANG . '_' . $module_data . '_money WHERE type=2')->fetchColumn();
     $total_money = $thu - $chi;
-
+    $total = 0;
     $total += $view['money'];
-
+    
     $view['date'] = !empty($view['date']) ? nv_date('d/m/Y', $view['date']) : '';
     $view['addtime'] = !empty($view['addtime']) ? nv_date('H:i d/m/Y', $view['addtime']) : '';
     $view['money'] = nv_number_format($view['money']);
     $view['total'] = nv_number_format($total);
     $view['total_money'] = nv_number_format($total_money);
-
+    
     $xtpl->assign('VIEW', $view);
-
+    
     if (!empty($count_groupmanager)) {
         if (nv_check_action($view['addtime'])) {
             $xtpl->parse('main.loop.groupmanager_td.admin');
@@ -131,7 +142,7 @@ while ($view = $sth->fetch()) {
         $xtpl->parse('main.loop.groupmanager_td1');
         $xtpl->parse('main.loop.groupmanager_td2');
     }
-
+    
     $xtpl->parse('main.loop');
 }
 
@@ -156,7 +167,8 @@ if (!empty($count_groupmanager)) {
 if (!$global_config['rewrite_enable']) {
     $xtpl->assign('ACTION', NV_BASE_SITEURL . 'index.php');
 } else {
-    $xtpl->assign('ACTION', nv_url_rewrite(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name . '&amp;' . NV_OP_VARIABLE . '=' . $module_info['alias']['money'], true));
+    
+    $xtpl->assign('ACTION', nv_url_rewrite(NV_BASE_SITEURL . 'index.php?' . NV_LANG_VARIABLE . '=' . NV_LANG_DATA . '&amp;' . NV_NAME_VARIABLE . '=' . $module_name, true));
 }
 
 if (!$global_config['rewrite_enable']) {

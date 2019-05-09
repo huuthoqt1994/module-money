@@ -54,3 +54,9 @@ $lang_module['error_required_type'] = 'Lỗi: bạn cần nhập dữ liệu cho
 $lang_module['error_required_money'] = 'Lỗi: bạn cần nhập dữ liệu cho Giá trị';
 $lang_module['title_no_premission'] = 'Khu vực không được phép truy cập';
 $lang_module['content_no_premission'] = 'Bạn không được cấp phép để sử dụng tính năng này, vui lòng trở lại';
+
+$lang_module['choice_time'] = 'Chọn thời gian';
+$lang_module['applyLabel'] = 'Áp dụng';
+$lang_module['cancelLabel'] = 'Hủy';
+$lang_module['fromLabel'] = 'Từ ngày';
+$lang_module['toLabel'] = 'Đến ngày';
